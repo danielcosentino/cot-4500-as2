@@ -1,4 +1,6 @@
 import math
+import numpy as np
+np.set_printoptions(precision=7, suppress=True, linewidth=100)
 
 # def lagrange(xData, xValue):
 #   # big sigma
@@ -58,8 +60,6 @@ def forward_difference(xData, yData):
 def number_2():
   xData = [7.2, 7.4, 7.5, 7.6]
   yData = [23.5492, 25.3913, 26.8224, 27.4589]
-  # xData = [8.1, 8.3, 8.6, 8.7]
-  # yData = [16.9441, 17.56492, 18.50515, 18.82091]
   coeff = forward_difference(xData, yData)
   print(coeff)
   print()
@@ -96,8 +96,8 @@ def hermite(zData, yData, yPrimeData):
     xData.append(zData[i])
   Q.append(qTemp.copy())
 
-  # do the first one here
-  qTemp = [None]
+  # do the first one here manually
+  qTemp = [0]
   for i in range(1, 2 * len(yData)):
     # if index is odd, use yPrimeData
     if (i % 2 == 1):
@@ -109,30 +109,66 @@ def hermite(zData, yData, yPrimeData):
   for k in range(2, len(xData)):
     qTemp = []
     for i in range(k):
-      qTemp.append(None)
+      qTemp.append(0)
     for i in range(k, len(xData)):
       Q_i_k = (Q[k-1][i] - Q[k-1][i-1]) / (xData[i] - xData[i-k])
       qTemp.append(Q_i_k)
     Q.append(qTemp.copy())
+  Q = [xData] + Q
   return Q  
 
-  # coeff = []
-  # for i in range(1, len(xData)):
-  #   coeff.append(Q[i][i])
-  # return coeff
-
 def number_4():
-  # zData = [1.3, 1.6, 1.9]
-  # yData = [0.620086, 0.4554022, 0.2818186]
-  # yPrimeData = [-0.5220232, -0.5698959, -0.5811571]
   zData = [3.6, 3.8, 3.9]
   yData = [1.675, 1.436, 1.318]
   yPrimeData = [-1.195, -1.188, -1.182]
-  coeff = hermite(zData, yData, yPrimeData)
-  print(coeff)
+  matrix = np.array(hermite(zData, yData, yPrimeData))
+  matrix = matrix[0:len(matrix) - 1].copy()
+  matrix = matrix.transpose()
+  print(matrix)
   print()
+
+def getMatrixA(xData, yData, h, dy):
+  A = np.zeros((len(xData), len(xData)))
+  A[0, 0] = 1
+  A[-1, -1] = 1
+  for i in range(1, len(xData) - 1):
+    A[i, i - 1] = h[i - 1]
+    A[i, i] = 2 * (h[i - 1] + h[i])
+    A[i, i + 1] = h[i]
+  print(A)
+  print()
+  return A
+
+def getVectorb(xData, h, dy):
+  b = np.zeros(len(xData))
+  for i in range(1, len(xData) - 1):
+    b[i] = 3 * (dy[i] / h[i] - dy[i - 1] / h[i - 1])
+  print(b)
+  print()
+  return b
+
+def getVectorx(A, b):
+  x = np.linalg.solve(A, b)
+  print(x)
+  return x
+
+
+def number_5():
+  xData = np.array([2, 5, 8, 10])
+  yData = np.array([3, 5, 7, 9])
+
+  h = np.diff(xData)
+  dy = np.diff(yData)
+
+  A = getMatrixA(xData, yData, h, dy)
+
+  b = getVectorb(xData, h, dy)
+
+  x = getVectorx(A, b)
+
 number_1()
 coeff = number_2()
 number_3(coeff)
 number_4()
+number_5()
 
